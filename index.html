@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>민원서비스 통합 검색 및 필터</title>
+    <style>
+        :root {
+            --primary-color: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #718096;
+        }
+
+        /* 검색 및 필터 영역 */
+        .filter-section {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .filter-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: #4a5568;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 0.95rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: #fff;
+            outline: none;
+        }
+
+        .filter-group select:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* 결과 요약 */
+        .result-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        /* 카드 그리드 레이아웃 */
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .service-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .service-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            background-color: #ebf8ff;
+            color: var(--primary-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .service-id {
+            color: #a0aec0;
+            font-size: 0.8rem;
+        }
+
+        .service-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 12px;
+        }
+
+        .card-body {
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .card-body div {
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .card-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .online-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .online-yes {
+            background-color: #c6f6d5;
+            color: #22543d;
+        }
+
+        .online-no {
+            background-color: #fed7d7;
+            color: #742a2a;
+        }
+
+        .no-result {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            color: #a0aec0;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>민원서비스 통합 검색</h1>
+        <p>원하시는 민원서비스를 빠르게 검색하고 조건별로 필터링하세요[cite: 8].</p>
+    </header>
+
+    <!-- 검색 및 필터 제어 영역 -->
+    <section class="filter-section">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="서비스명 또는 소관기관을 입력하세요 (예: 주민등록, 건축...)">
+        </div>
+        <div class="filter-groups">
+            <div class="filter-group">
+                <label for="categoryFilter">민원분야</label>
+                <select id="categoryFilter">
+                    <option value="">전체 분야</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="agencyFilter">소관기관</label>
+                <select id="agencyFilter">
+                    <option value="">전체 기관</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="onlineFilter">온라인 처리 여부</label>
+                <select id="onlineFilter">
+                    <option value="">전체</option>
+                    <option value="가능">가능</option>
+                    <option value="불가">불가</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- 검색 결과 카운트 -->
+    <div class="result-meta">
+        <span>검색 결과</span>
+        <span id="resultCount">0건</span>
+    </div>
+
+    <!-- 카드 목록 렌더링 영역 -->
+    <div class="service-grid" id="serviceGrid">
+        <!-- 자바스크립트로 동적 생성됩니다 -->
+    </div>
+</div>
+
+<script>
+    // 제공된 민원서비스 JSON 데이터[cite: 8]
+    const services = [
+      { "서비스ID": "S001", "서비스명": "주민등록등본 발급", "소관기관": "주민센터", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 7, "수수료": 500 },
+      { "서비스ID": "S002", "서비스명": "전입신고", "소관기관": "복지정책과", "민원분야": "주민등록", "온라인처리": "불가", "처리기한일": 1, "수수료": 0 },
+      { "서비스ID": "S003", "서비스명": "인감증명 발급", "소관기관": "복지정책과", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 1, "수수료": 0 },
+      { "서비스ID": "S004", "서비스명": "주민등록증 재발급", "소관기관": "건축과", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 0, "수수료": 0 },
+      { "서비스ID": "S005", "서비스명": "건축물대장 발급", "소관기관": "구청 민원봉사과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 0, "수수료": 1000 },
+      { "서비스ID": "S006", "서비스명": "건축허가 신청", "소관기관": "건축과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 1, "수수료": 2000 },
+      { "서비스ID": "S007", "서비스명": "용도변경 신고", "소관기관": "시청 민원과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 0, "수수료": 0 },
+      { "서비스ID": "S008", "서비스명": "지방세 납부확인서", "소관기관": "건축과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 1, "수수료": 1000 },
+      { "서비스ID": "S009", "서비스명": "취득세 신고", "소관기관": "교통행정과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 0, "수수료": 0 },
+      { "서비스ID": "S010", "서비스명": "재산세 조회", "소관기관": "교통행정과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 3, "수수료": 0 },
+      { "서비스ID": "S011", "서비스명": "기초연금 신청", "소관기관": "건축과", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 7, "수수료": 500 },
+      { "서비스ID": "S012", "서비스명": "복지급여 조회", "소관기관": "시청 민원과", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 14, "수수료": 5000 },
+      { "서비스ID": "S013", "서비스명": "장애인 등록", "소관기관": "주민센터", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 5, "수수료": 0 },
+      { "서비스ID": "S014", "서비스명": "자동차 등록", "소관기관": "주민센터", "민원분야": "교통", "온라인처리": "가능", "처리기한일": 1, "수수료": 5000 },
+      { "서비스ID": "S015", "서비스명": "운전면허 갱신", "소관기관": "교통행정과", "민원분야": "교통", "온라인처리": "불가", "처리기한일": 1, "수수료": 0 },
+      { "서비스ID": "S016", "서비스명": "주정차 위반 조회", "소관기관": "주민센터", "민원분야": "교통", "온라인처리": "가능", "처리기한일": 7, "수수료": 1000 },
+      { "서비스ID": "S017", "서비스명": "배출시설 신고", "소관기관": "주민센터", "민원분야": "환경", "온라인처리": "가능", "처리기한일": 1, "수수료": 0 },
+      { "서비스ID": "S018", "서비스명": "폐기물 처리 신청", "소관기관": "시청 민원과", "민원분야": "환경", "온라인처리": "가능", "처리기한일": 14, "수수료": 5000 },
+      { "서비스ID": "S019", "서비스명": "식품영업 신고", "소관기관": "건축과", "민원분야": "위생", "온라인처리": "가능", "처리기한일": 3, "수수료": 2000 },
+      { "서비스ID": "S020", "서비스명": "위생업소 조회", "소관기관": "시청 민원과", "민원분야": "위생", "온라인처리": "불가", "처리기한일": 7, "수수료": 500 },
+      { "서비스ID": "S021", "서비스명": "여권 발급 신청", "소관기관": "건축과", "민원분야": "여권", "온라인처리": "가능", "처리기한일": 7, "수수료": 1000 },
+      { "서비스ID": "S022", "서비스명": "여권 재발급", "소관기관": "교통행정과", "민원분야": "여권", "온라인처리": "가능", "처리기한일": 1, "수수료": 1000 }
+    ];
+
+    // DOM 요소 선택
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const agencyFilter = document.getElementById('agencyFilter');
+    const onlineFilter = document.getElementById('onlineFilter');
+    const serviceGrid = document.getElementById('serviceGrid');
+    const resultCount = document.getElementById('resultCount');
+
+    // 초기 셀렉트박스 옵션 동적 생성
+    function initFilters() {
+        const categories = [...new Set(services.map(item => item.민원분야))];
+        const agencies = [...new Set(services.map(item => item.소관기관))];
+
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            categoryFilter.appendChild(option);
+        });
+
+        agencies.forEach(agency => {
+            const option = document.createElement('option');
+            option.value = agency;
+            option.textContent = agency;
+            agencyFilter.appendChild(option);
+        });
+    }
+
+    // 서비스 목록 렌더링 함수
+    function renderServices(data) {
+        serviceGrid.innerHTML = '';
+        resultCount.textContent = `${data.length}건`;
+
+        if (data.length === 0) {
+            serviceGrid.innerHTML = `<div class="no-result">검색 결과가 존재하지 않습니다.</div>`;
+            return;
+        }
+
+        data.forEach(service => {
+            const card = document.createElement('div');
+            card.className = 'service-card';
+
+            const onlineClass = service.온라인처리 === '가능' ? 'online-yes' : 'online-no';
+
+            card.innerHTML = `
+                <div>
+                    <div class="card-header">
+                        <span class="badge">${service.민원분야}</span>
+                        <span class="service-id">${service.서비스ID}</span>
+                    </div>
+                    <div class="service-title">${service.서비스명}</div>
+                    <div class="card-body">
+                        <div><span>소관기관</span> <strong>${service.소관기관}</strong></div>
+                        <div><span>처리기한</span> <strong>${service.처리기한일 === 0 ? '즉시 (당일)' : service.처리기한일 + '일'}</strong></div>
+                        <div><span>수수료</span> <strong>${service.수수료.toLocaleString()}원</strong></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span>온라인 접수</span>
+                    <span class="online-badge ${onlineClass}">${service.온라인처리}</span>
+                </div>
+            `;
+            serviceGrid.appendChild(card);
+        });
+    }
+
+    // 필터링 및 검색 로직 결합
+    function filterData() {
+        const keyword = searchInput.value.toLowerCase().trim();
+        const selectedCategory = categoryFilter.value;
+        const selectedAgency = agencyFilter.value;
+        const selectedOnline = onlineFilter.value;
+
+        const filtered = services.filter(service => {
+            const matchKeyword = service.서비스명.toLowerCase().includes(keyword) || 
+                                 service.소관기관.toLowerCase().includes(keyword) ||
+                                 service.민원분야.toLowerCase().includes(keyword);
+            const matchCategory = selectedCategory === "" || service.민원분야 === selectedCategory;
+            const matchAgency = selectedAgency === "" || service.소관기관 === selectedAgency;
+            const matchOnline = selectedOnline === "" || service.온라인처리 === selectedOnline;
+
+            return matchKeyword && matchCategory && matchAgency && matchOnline;
+        });
+
+        renderServices(filtered);
+    }
+
+    // 이벤트 리스너 등록
+    searchInput.addEventListener('input', filterData);
+    categoryFilter.addEventListener('change', filterData);
+    agencyFilter.addEventListener('change', filterData);
+    onlineFilter.addEventListener('change', filterData);
+
+    // 초기 실행
+    initFilters();
+    renderServices(services);
+</script>
+
+</body>
+</html>
